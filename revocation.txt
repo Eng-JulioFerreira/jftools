@@ -2,5 +2,3 @@
 # To revoke a customer: edit this file on GitHub (click the pencil icon),
 # add the customer license on a new line, then click "Commit changes".
 # One customer license per line. Lines starting with # are ignored.
-99999
-AAAS-GVWA-3LQ9-CD74
