@@ -1,2 +1,2 @@
-# jftools-revocation
-JFTools license revocation list
+# jftools
+JFTools Revit plugin 
