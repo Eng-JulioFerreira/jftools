@@ -3,4 +3,3 @@
 # add the customer license on a new line, then click "Commit changes".
 # One customer license per line. Lines starting with # are ignored.
 AABG-3TBS-A3XK-68KU
-AAAS-KHP3-KCWJ-9HFC
