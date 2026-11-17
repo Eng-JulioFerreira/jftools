@@ -85,6 +85,17 @@ Para testar sem reinstalar, sobrescreva `C:\ProgramData\JFTools\R<versão>\JFToo
 1. Rode `.\build.ps1` na raiz do repositório. Ele compila as três versões e copia as DLLs para `Installer/R2022`, `Installer/R2025` e `Installer/R2027`.
 2. Se o [Inno Setup 6](https://jrsoftware.org/isinfo.php) estiver instalado, o script já gera `Installer/Output/JFTools-Setup.exe`. Senão, compile `Installer/JFTools-Setup.iss` manualmente.
 
+### Publicar uma versão
+
+O GitHub Actions ([release.yml](.github/workflows/release.yml)) faz tudo sozinho: adicione a seção da versão no [CHANGELOG.md](CHANGELOG.md) e envie uma tag.
+
+```
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+O workflow compila as três versões, gera o instalador e publica o release com o `JFTools-Setup.exe` anexado e as notas do CHANGELOG. Pela aba **Actions → Build e release → Run workflow** dá para só gerar o instalador, sem publicar.
+
 ### Estrutura
 
 ```
