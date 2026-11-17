@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.png" width="120" alt="JF Tools"></p>
+
 # JF Tools
 
 Plugin gratuito para Autodesk Revit que exporta pranchas em lote para **PDF**, **DWG**, **IFC** e **NWC**, com nomenclatura padronizada e controle de revisões, tudo numa única janela, sem precisar do pyRevit.
@@ -94,9 +96,10 @@ JFTools/
 │   └── L.cs                      ← todos os textos da interface (PT/EN)
 └── Views/                        ← janelas WPF (principal, revisões, nomenclatura, Excel)
 Installer/JFTools-Setup.iss       ← script do instalador
+revocation.txt                    ← mantido vazio: versões antigas (pagas) consultam este arquivo
 ```
 
-Detalhes técnicos de cada módulo estão em [CLAUDE.md](CLAUDE.md).
+Detalhes técnicos de cada módulo estão em [CLAUDE.md](CLAUDE.md). O histórico de versões está em [CHANGELOG.md](CHANGELOG.md).
 
 ## Suporte
 
