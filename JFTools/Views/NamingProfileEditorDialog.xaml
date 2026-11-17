@@ -1,0 +1,389 @@
+<Window x:Class="JFTools.Views.NamingProfileEditorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:JFTools.Helpers"
+        Title="{x:Static l:L.NamingTitle}" Height="600" Width="860"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI" FontSize="12"
+        Background="White"
+        ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="False">
+
+    <Window.Resources>
+
+        <!-- ── Primary Button ── -->
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="#1A73E8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#1557B0"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Background" Value="#C5D8F8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Tab Control ── -->
+        <Style TargetType="TabControl">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0" Background="#FFFFFF"
+                                    BorderBrush="#DDE1E7" BorderThickness="0,0,0,1">
+                                <TabPanel Name="HeaderPanel" IsItemsHost="True"
+                                          Background="Transparent" Margin="6,0"/>
+                            </Border>
+                            <ContentPresenter Name="PART_SelectedContentHost"
+                                              Grid.Row="1" ContentSource="SelectedContent"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Tab Item ── -->
+        <Style TargetType="TabItem">
+            <Setter Property="Padding"         Value="18,11"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="bd" BorderBrush="Transparent"
+                                BorderThickness="0,0,0,2"
+                                Padding="{TemplateBinding Padding}" Cursor="Hand">
+                            <ContentPresenter x:Name="txt" ContentSource="Header"
+                                              TextElement.Foreground="#80868B"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="bd"  Property="BorderBrush"           Value="#1A73E8"/>
+                                <Setter TargetName="txt" Property="TextElement.Foreground" Value="#1A73E8"/>
+                                <Setter TargetName="txt" Property="TextElement.FontWeight"  Value="SemiBold"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected"  Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="txt" Property="TextElement.Foreground" Value="#333333"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Param list item: blue selection, hover highlight ── -->
+        <Style x:Key="ParamListItem" TargetType="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="bd" Background="Transparent" CornerRadius="2"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#1A73E8"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="bd" Property="Background" Value="#E8F0FE"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Shared DataTemplate for Sheet and Project param lists ── -->
+        <DataTemplate x:Key="ParamItemTemplate">
+            <Grid Margin="0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="110"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding Sample}"
+                           FontSize="10" FontStyle="Italic"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#AAAAAA"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
+                                    <Setter Property="Foreground" Value="#C5D8F8"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </DataTemplate>
+
+    </Window.Resources>
+
+    <Grid Margin="14,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="6"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="14"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: Profile selector bar -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{x:Static l:L.LblProfileColon}" Grid.Column="0" VerticalAlignment="Center"
+                       FontWeight="SemiBold" Foreground="#5F6368"/>
+            <ComboBox x:Name="comboProfile" Grid.Column="2" Height="28"
+                      SelectionChanged="OnProfileSelectionChanged"/>
+            <Button x:Name="btnNew" Grid.Column="4" Content="{x:Static l:L.BtnNew}" Height="28" Padding="12,0"
+                    Click="OnNewProfile"/>
+            <Button x:Name="btnDuplicate" Grid.Column="6" Content="{x:Static l:L.BtnDuplicate}" Height="28" Padding="12,0"
+                    Click="OnDuplicateProfile"/>
+            <Button x:Name="btnRename" Grid.Column="8" Content="{x:Static l:L.BtnRename}" Height="28" Padding="12,0"
+                    Click="OnRenameProfile"/>
+            <Button x:Name="btnDelete" Grid.Column="10" Content="{x:Static l:L.BtnDelete}" Height="28" Padding="12,0"
+                    Background="#D93025" Foreground="White" BorderThickness="0" FontWeight="SemiBold"
+                    Click="OnDeleteProfile"/>
+        </Grid>
+
+        <!-- Row 2: Main 3-column content -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="82"/>
+                <ColumnDefinition Width="270"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Col 0: Available Parameters GroupBox -->
+            <GroupBox Grid.Column="0" Header="{x:Static l:L.GrpAvailParams}">
+                <TabControl x:Name="tabParams" Margin="0,4,0,0">
+                    <TabItem Header="{x:Static l:L.TabSheet}">
+                        <ListBox x:Name="listSheetParams"
+                                 BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 MouseDoubleClick="OnParamDoubleClick"
+                                 ItemTemplate="{StaticResource ParamItemTemplate}"
+                                 ItemContainerStyle="{StaticResource ParamListItem}"/>
+                    </TabItem>
+                    <TabItem Header="{x:Static l:L.TabProjectNaming}">
+                        <ListBox x:Name="listProjectParams"
+                                 BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 MouseDoubleClick="OnParamDoubleClick"
+                                 ItemTemplate="{StaticResource ParamItemTemplate}"
+                                 ItemContainerStyle="{StaticResource ParamListItem}"/>
+                    </TabItem>
+                </TabControl>
+            </GroupBox>
+
+            <!-- Col 1: Add button (centered) -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Button x:Name="btnAdd" Content="{x:Static l:L.BtnAddArrow}" Width="74" Height="28"
+                        Click="OnAddParam"/>
+            </StackPanel>
+
+            <!-- Col 2: Naming Pattern GroupBox -->
+            <GroupBox Grid.Column="2" Header="{x:Static l:L.GrpNamingPattern}">
+                <Grid Margin="6,4,6,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="6"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="4"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Pattern token list (vertical, full-width rows) -->
+                    <ListBox x:Name="listPattern" Grid.Row="0"
+                             BorderBrush="#DDE1E7" BorderThickness="1"
+                             SelectionMode="Single"
+                             SelectionChanged="OnPatternSelectionChanged"
+                             KeyDown="OnPatternKeyDown">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border Background="Transparent" BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Stretch"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="chip" CornerRadius="3" Padding="8,5" Margin="3,2"
+                                        Background="#E8F0FE" BorderBrush="#C5D8F8" BorderThickness="1"
+                                        HorizontalAlignment="Stretch">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border x:Name="badge" CornerRadius="2" Padding="4,1" Margin="0,0,7,0"
+                                                Background="#1A73E8" VerticalAlignment="Center">
+                                            <TextBlock x:Name="badgeTxt" Text="P" FontSize="9"
+                                                       Foreground="White" FontWeight="Bold"/>
+                                        </Border>
+                                        <TextBlock x:Name="lbl" Grid.Column="1" Text="{Binding Display}"
+                                                   Foreground="#1A73E8" FontWeight="SemiBold" FontSize="11"
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsParam}" Value="False">
+                                        <Setter TargetName="chip" Property="Background" Value="#F1F3F4"/>
+                                        <Setter TargetName="chip" Property="BorderBrush" Value="#DDE1E7"/>
+                                        <Setter TargetName="badge" Property="Background" Value="#9AA0A6"/>
+                                        <Setter TargetName="badgeTxt" Property="Text" Value="S"/>
+                                        <Setter TargetName="lbl" Property="Foreground" Value="#5F6368"/>
+                                        <Setter TargetName="lbl" Property="FontWeight" Value="Normal"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
+                                        <Setter TargetName="chip" Property="Background" Value="#1A73E8"/>
+                                        <Setter TargetName="chip" Property="BorderBrush" Value="#1A73E8"/>
+                                        <Setter TargetName="badge" Property="Background" Value="White"/>
+                                        <Setter TargetName="badgeTxt" Property="Foreground" Value="#1A73E8"/>
+                                        <Setter TargetName="lbl" Property="Foreground" Value="White"/>
+                                        <Setter TargetName="lbl" Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Move / Remove buttons -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal">
+                        <Button Content="↑" Width="28" Height="26" Click="OnMoveUp"/>
+                        <Button Content="↓" Width="28" Height="26" Margin="4,0,8,0" Click="OnMoveDown"/>
+                        <Button Content="{x:Static l:L.BtnRemoveToken}" Height="26" Padding="8,0" Click="OnRemoveToken"/>
+                    </StackPanel>
+
+                    <!-- Quick separators label -->
+                    <TextBlock Grid.Row="4" Text="{x:Static l:L.LblQuickSep}" FontSize="10" Foreground="#888"/>
+
+                    <!-- Separator buttons -->
+                    <StackPanel Grid.Row="6" Orientation="Horizontal">
+                        <Button Content="_" Width="28" Height="24" Tag="_" Click="OnAddSep" Margin="0,0,4,0"/>
+                        <Button Content="-" Width="28" Height="24" Tag="-" Click="OnAddSep" Margin="0,0,4,0"/>
+                        <Button Content="." Width="28" Height="24" Tag="." Click="OnAddSep" Margin="0,0,4,0"/>
+                        <Button Content="/" Width="28" Height="24" Tag="/" Click="OnAddSep" Margin="0,0,4,0"/>
+                        <Button Content="SP" Width="28" Height="24" Tag=" " Click="OnAddSep" Margin="0,0,4,0"
+                                ToolTip="{x:Static l:L.TooltipSpace}"/>
+                    </StackPanel>
+
+                    <!-- Custom text entry -->
+                    <Grid Grid.Row="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="6"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtCustomSep" Grid.Column="0" Height="24"
+                                 VerticalContentAlignment="Center" Padding="4,0"/>
+                        <Button Grid.Column="2" Content="{x:Static l:L.BtnAdd}" Height="24" Padding="8,0"
+                                Click="OnAddCustomText"/>
+                    </Grid>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
+        <!-- Row 4: Pattern display -->
+        <Border Grid.Row="4" Background="#F8F9FA" BorderBrush="#DDE1E7"
+                BorderThickness="1" CornerRadius="3" Padding="10,6">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{x:Static l:L.TxtPatternLabel}" Foreground="#AAAAAA" FontSize="10" FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+                <TextBlock x:Name="txtPatternDisplay" FontFamily="Consolas" FontSize="11"
+                           Foreground="#333333" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Row 6: Preview display -->
+        <Border Grid.Row="6" Background="#F8F9FA" BorderBrush="#DDE1E7"
+                BorderThickness="1" CornerRadius="3" Padding="10,6">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{x:Static l:L.TxtPreviewLabel}" Foreground="#AAAAAA" FontSize="10" FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+                <TextBlock x:Name="txtPreview" FontFamily="Consolas" FontSize="11"
+                           Foreground="#1A73E8" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Row 8: Save / Cancel buttons -->
+        <Grid Grid.Row="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" Content="{x:Static l:L.BtnSave}" Style="{StaticResource PrimaryBtn}"
+                    Width="100" Height="34" Click="OnSave"/>
+            <Button Grid.Column="3" Content="{x:Static l:L.BtnCancel}" Width="90" Height="34"
+                    Click="OnCancel"/>
+        </Grid>
+    </Grid>
+</Window>

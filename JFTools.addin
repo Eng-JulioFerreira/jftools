@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Name>JF Tools - Export Sheets</Name>
+    <Assembly>JFTools.dll</Assembly>
+    <FullClassName>JFTools.ExportSheetsCommand</FullClassName>
+    <ClientId>B8F3A1C2-7D4E-4A9B-8C6D-1E2F3A4B5C6D</ClientId>
+    <VendorId>JFTools</VendorId>
+    <VendorDescription>JF Tools</VendorDescription>
+    <Text>Export Sheets</Text>
+    <Description>Exporta pranchas para PDF, DWG, IFC e NWC</Description>
+    <VisibilityMode>AlwaysVisible</VisibilityMode>
+  </AddIn>
+  <AddIn Type="Application">
+    <Name>JF Tools Ribbon</Name>
+    <Assembly>JFTools.dll</Assembly>
+    <FullClassName>JFTools.JFToolsApp</FullClassName>
+    <ClientId>B8F3A1C2-7D4E-4A9B-8C6D-1E2F3A4B5C7E</ClientId>
+    <VendorId>JFTools</VendorId>
+    <VendorDescription>JF Tools</VendorDescription>
+  </AddIn>
+</RevitAddIns>

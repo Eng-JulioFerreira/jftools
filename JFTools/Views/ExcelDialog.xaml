@@ -1,0 +1,238 @@
+<Window x:Class="JFTools.Views.ExcelDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:JFTools.Helpers"
+        Title="{x:Static l:L.ExcelTitle}"
+        Height="580" Width="580"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI" FontSize="12"
+        Background="White"
+        ResizeMode="NoResize">
+
+    <Window.Resources>
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="#1A73E8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#1557B0"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Background" Value="#C5D8F8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0" Background="#FFFFFF"
+                                    BorderBrush="#DDE1E7" BorderThickness="0,0,0,1">
+                                <TabPanel Name="HeaderPanel" IsItemsHost="True"
+                                          Background="Transparent" Margin="6,0"/>
+                            </Border>
+                            <ContentPresenter Name="PART_SelectedContentHost"
+                                              Grid.Row="1" ContentSource="SelectedContent"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="Padding" Value="18,11"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="bd" BorderBrush="Transparent"
+                                BorderThickness="0,0,0,2"
+                                Padding="{TemplateBinding Padding}" Cursor="Hand">
+                            <ContentPresenter x:Name="txt" ContentSource="Header"
+                                              TextElement.Foreground="#80868B"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#1A73E8"/>
+                                <Setter TargetName="txt" Property="TextElement.Foreground" Value="#1A73E8"/>
+                                <Setter TargetName="txt" Property="TextElement.FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="txt" Property="TextElement.Foreground" Value="#333333"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <TabControl Background="White">
+
+        <!-- ══════════════ TAB: EXPORT ══════════════ -->
+        <TabItem Header="{x:Static l:L.TabExcelExport}">
+            <Grid Margin="14,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Project -->
+                <GroupBox Grid.Row="0" Header="{x:Static l:L.GrpProject}" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="{x:Static l:L.LblProjectColon}" FontWeight="Normal" Padding="0"
+                               VerticalContentAlignment="Center"/>
+                        <ComboBox x:Name="comboExportDoc" Grid.Column="1" Height="26"
+                                  SelectionChanged="OnExportDocChanged"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Schedules -->
+                <GroupBox Grid.Row="1" Header="{x:Static l:L.GrpSchedule}" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="6"/>
+                            <RowDefinition Height="160"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="{x:Static l:L.LblSelectSched}"
+                                   Foreground="#5F6368" FontSize="11"/>
+                        <ListBox x:Name="listSchedules" Grid.Row="2"
+                                 BorderBrush="#DDE1E7" BorderThickness="1"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 SelectionMode="Single"
+                                 SelectionChanged="OnScheduleSelectionChanged"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Destination file -->
+                <GroupBox Grid.Row="2" Header="{x:Static l:L.GrpDestFile}" Margin="0,0,0,8"
+                          VerticalAlignment="Top">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtExportPath" Grid.Column="0" Height="28" Padding="6,0"
+                                 IsReadOnly="True" VerticalContentAlignment="Center"
+                                 BorderBrush="#DADCE0" BorderThickness="1" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Content="{x:Static l:L.BtnBrowse}" Height="28" Width="80"
+                                Click="OnBrowseExport"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Info note -->
+                <TextBlock Grid.Row="3" Margin="0,0,0,10"
+                           Text="{x:Static l:L.ExcelNote}"
+                           TextWrapping="Wrap" Foreground="#5F6368" FontSize="11"/>
+
+                <Button Grid.Row="4" Content="{x:Static l:L.BtnExportLabel}" Style="{StaticResource PrimaryBtn}"
+                        Height="36" HorizontalAlignment="Stretch" Click="OnExport"/>
+            </Grid>
+        </TabItem>
+
+        <!-- ══════════════ TAB: IMPORT ══════════════ -->
+        <TabItem Header="{x:Static l:L.TabExcelImport}">
+            <Grid Margin="14,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Excel File -->
+                <GroupBox Grid.Row="0" Header="{x:Static l:L.GrpExcelFile}" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtImportPath" Grid.Column="0" Height="28" Padding="6,0"
+                                 IsReadOnly="True" VerticalContentAlignment="Center"
+                                 BorderBrush="#DADCE0" BorderThickness="1" Margin="0,0,6,0"/>
+                        <Button Grid.Column="1" Content="{x:Static l:L.BtnBrowse}" Height="28" Width="80"
+                                Click="OnBrowseImport"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Worksheet (= which schedule) -->
+                <GroupBox Grid.Row="1" Header="{x:Static l:L.GrpWorksheet}" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="70"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="{x:Static l:L.LblSheetColon}" FontWeight="Normal" Padding="0"
+                               VerticalContentAlignment="Center"/>
+                        <ComboBox x:Name="comboWorksheet" Grid.Column="1" Height="26"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Target Project -->
+                <GroupBox Grid.Row="2" Header="{x:Static l:L.GrpTargetProj}" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="70"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="{x:Static l:L.LblProjectColon}" FontWeight="Normal" Padding="0"
+                               VerticalContentAlignment="Center"/>
+                        <ComboBox x:Name="comboImportDoc" Grid.Column="1" Height="26"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Results log -->
+                <GroupBox Grid.Row="3" Header="{x:Static l:L.GrpResults}" Margin="0,0,0,8">
+                    <TextBox x:Name="txtResults"
+                             IsReadOnly="True" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             FontFamily="Consolas" FontSize="11"
+                             BorderThickness="0" Background="Transparent"
+                             Foreground="#202124"/>
+                </GroupBox>
+
+                <Button Grid.Row="4" Content="{x:Static l:L.BtnImportLabel}" Style="{StaticResource PrimaryBtn}"
+                        Height="36" HorizontalAlignment="Stretch" Click="OnImport"/>
+            </Grid>
+        </TabItem>
+
+    </TabControl>
+</Window>

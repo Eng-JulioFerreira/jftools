@@ -1,0 +1,159 @@
+<Window x:Class="JFTools.Views.RevisionEditorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:JFTools.Helpers"
+        Title="{x:Static l:L.RevTitle}" Height="620" Width="880"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI" FontSize="12"
+        ResizeMode="CanResizeWithGrip" ShowInTaskbar="False">
+
+    <Window.Resources>
+        <Style x:Key="Lbl" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#5F6368"/>
+            <Setter Property="FontSize"   Value="11"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="AB" TargetType="Button">
+            <Setter Property="Height"          Value="28"/>
+            <Setter Property="Width"           Value="102"/>
+            <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush"     Value="#DDE1E7"/>
+            <Setter Property="Background"      Value="#F1F3F4"/>
+            <Setter Property="Foreground"      Value="#3C4043"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="14,12,14,14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Filter bar -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{x:Static l:L.LblProjFilter}"
+                       Style="{StaticResource Lbl}" FontWeight="SemiBold"/>
+            <ComboBox x:Name="cboProject" Grid.Column="2" Height="28"
+                      VerticalContentAlignment="Center"/>
+            <TextBlock Grid.Column="3"
+                       Text="{x:Static l:L.LblEditRemNote}"
+                       Style="{StaticResource Lbl}" FontStyle="Italic"/>
+        </Grid>
+
+        <!-- Revision list -->
+        <ListView x:Name="lvRevs" Grid.Row="2" SelectionMode="Single"
+                  BorderBrush="#DDE1E7" BorderThickness="1">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="{x:Static l:L.ColRevNum}"     Width="36"  DisplayMemberBinding="{Binding Num}"/>
+                    <GridViewColumn Header="{x:Static l:L.ColRevDateShort}"    Width="90"  DisplayMemberBinding="{Binding Date}"/>
+                    <GridViewColumn Header="{x:Static l:L.ColRevDesc}"    Width="220" DisplayMemberBinding="{Binding Desc}"/>
+                    <GridViewColumn Header="{x:Static l:L.ColRevIssuedBy}" Width="110" DisplayMemberBinding="{Binding IssuedBy}"/>
+                    <GridViewColumn Header="{x:Static l:L.ColRevIssuedTo}" Width="110" DisplayMemberBinding="{Binding IssuedTo}"/>
+                    <GridViewColumn Header="{x:Static l:L.ColRevProject}"  Width="130" DisplayMemberBinding="{Binding DocTitle}"/>
+                    <GridViewColumn Header="{x:Static l:L.ColRevSheets}"   Width="100" DisplayMemberBinding="{Binding Sheets}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <!-- Action buttons -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal">
+            <Button x:Name="btnRevAdd" Style="{StaticResource AB}"
+                    Content="{x:Static l:L.BtnRevAdd}" Margin="0,0,8,0"
+                    Background="#1A73E8" BorderThickness="0" Foreground="White"
+                    Click="OnRevAdd"/>
+            <Button x:Name="btnRevEdit" Style="{StaticResource AB}"
+                    Content="{x:Static l:L.BtnRevEdit}" Margin="0,0,8,0"
+                    Click="OnRevEdit"/>
+            <Button x:Name="btnRevRemove" Style="{StaticResource AB}"
+                    Content="{x:Static l:L.BtnRevRemove}"
+                    Background="#D93025" BorderThickness="0" Foreground="White"
+                    Click="OnRevRemove"/>
+        </StackPanel>
+
+        <!-- Inline form -->
+        <Border x:Name="pnlForm" Grid.Row="6" Visibility="Collapsed"
+                Background="#F8F9FA" BorderBrush="#DDE1E7"
+                BorderThickness="1" CornerRadius="4" Padding="14,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource Lbl}" Text="{x:Static l:L.LblDate}"/>
+                <TextBox   Grid.Row="0" Grid.Column="2" x:Name="fDate"
+                           Height="26" VerticalContentAlignment="Center" Padding="4,0"/>
+                <TextBlock Grid.Row="0" Grid.Column="4" Style="{StaticResource Lbl}" Text="{x:Static l:L.LblDescription}"/>
+                <TextBox   Grid.Row="0" Grid.Column="6" x:Name="fDesc"
+                           Height="26" VerticalContentAlignment="Center" Padding="4,0"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource Lbl}" Text="{x:Static l:L.LblIssuedBy}"/>
+                <TextBox   Grid.Row="2" Grid.Column="2" x:Name="fIssuedBy"
+                           Height="26" VerticalContentAlignment="Center" Padding="4,0"/>
+                <TextBlock Grid.Row="2" Grid.Column="4" Style="{StaticResource Lbl}" Text="{x:Static l:L.LblIssuedTo}"/>
+                <TextBox   Grid.Row="2" Grid.Column="6" x:Name="fIssuedTo"
+                           Height="26" VerticalContentAlignment="Center" Padding="4,0"/>
+
+                <!-- Add-only options: scope + apply -->
+                <StackPanel x:Name="pnlAddOpts" Grid.Row="4" Grid.ColumnSpan="7"
+                            Orientation="Horizontal" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource Lbl}" Text="{x:Static l:L.LblCreateIn}"
+                               FontWeight="SemiBold" Margin="0,0,10,0"/>
+                    <RadioButton x:Name="rAll" Content="{x:Static l:L.RadioAllProj}"
+                                 IsChecked="True" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <RadioButton x:Name="rFiltered" Content="{x:Static l:L.RadioFilteredProj}"
+                                 VerticalAlignment="Center" Margin="0,0,24,0"/>
+                    <CheckBox x:Name="chkApply" Content="{x:Static l:L.ChkApplySheets}"
+                              IsChecked="True" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Form save/cancel -->
+                <StackPanel Grid.Row="6" Grid.ColumnSpan="7"
+                            Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="btnFormSave" Width="90" Height="28" Margin="0,0,8,0"
+                            Content="{x:Static l:L.BtnSave}" FontWeight="SemiBold"
+                            Background="#1A73E8" Foreground="White" BorderThickness="0"
+                            Click="OnFormSave"/>
+                    <Button x:Name="btnFormCancel" Width="90" Height="28"
+                            Content="{x:Static l:L.BtnCancel}" Click="OnFormCancel"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Close -->
+        <Button x:Name="btnClose" Grid.Row="8" Content="{x:Static l:L.BtnClose}"
+                Width="100" Height="32" HorizontalAlignment="Right"
+                Click="OnClose"/>
+    </Grid>
+</Window>

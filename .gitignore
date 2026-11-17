@@ -1,0 +1,25 @@
+# Build
+bin/
+obj/
+.vs/
+packages/
+*.user
+*.suo
+
+# Instalador (artefatos gerados)
+Installer/Output/
+Installer/JFTools.dll
+Installer/export_profiles.txt
+
+# Ferramentas do antigo sistema de licenças (não fazem parte do plugin gratuito)
+KeyGen/
+ActivationPortal/
+
+# Configurações locais
+.claude/
+.vscode/
+
+# Experimentos de interface (fora do produto publicado)
+stitch_revit_export_ui/
+JFTools.Preview/
+JFToolsPreview.addin
