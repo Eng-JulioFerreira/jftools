@@ -4,41 +4,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build
 
-Open `JFTools/JFTools.csproj` in Visual Studio 2022 and press **Ctrl+Shift+B**, or use MSBuild from the command line:
+SDK-style project, one build per Revit range, selected with the `RevitVersion` property (requires the .NET 10 SDK; Revit does NOT need to be installed — the API comes from the `Nice3point.Revit.Api.RevitAPI/RevitAPIUI` reference packages, version `$(RevitVersion).*`):
 
 ```
-msbuild JFTools/JFTools.csproj /p:Configuration=Release
+dotnet build JFTools/JFTools.csproj -c Release -p:RevitVersion=2022   # net48           → Revit 2022–2024
+dotnet build JFTools/JFTools.csproj -c Release -p:RevitVersion=2025   # net8.0-windows  → Revit 2025–2026
+dotnet build JFTools/JFTools.csproj -c Release -p:RevitVersion=2027   # net10.0-windows → Revit 2027
 ```
 
-Output goes to `JFTools/bin/Debug/` or `JFTools/bin/Release/`.
+Output: `JFTools/bin/<Config>/R<RevitVersion>/JFTools.dll`. Any year can be passed to compile-check against that API (e.g. `-p:RevitVersion=2026`); all of 2022–2027 compile. `.\build.ps1` builds the three shipped variants and stages them into `Installer/R2022`, `Installer/R2025`, `Installer/R2027`.
 
-**Prerequisites:** .NET Framework 4.8, Visual Studio 2022, Revit 2022–2024 installed. Revit 2025+ runs on .NET 8 and is NOT supported yet (needs a net8.0-windows build; also `ElementId.IntegerValue` was removed in the Revit 2026 API — used in ExcelHelper, RevisionEditorDialog and ExportHelper).
+**Framework differences** live in `JFTools/Helpers/Compat.cs`:
+- `ElementId.IdValue()` — `IntegerValue` on net48, `Value` on .NET 8+ (`IntegerValue` was removed in the Revit 2026 API). Never call `IntegerValue`/`Value` directly.
+- `Compat.GetActiveComObject(progId)` — replaces `Marshal.GetActiveObject`, which does not exist on .NET 5+.
+- APIs that don't exist in Revit 2022 (e.g. `IFCVersion.IFC4x3`) must be resolved at runtime (`Enum.TryParse`), because the net48 build is compiled against the 2022 API.
 
-**Revit API path:** Set in `.csproj` via `<RevitApiPath>` (currently set to `D:\Autodesk\Programas\Revit 2023`). Adjust if your Revit is in a different location. `RevitAPI.dll` and `RevitAPIUI.dll` are referenced from there with `<Private>false</Private>` (not copied to output).
+EPPlus 4.5.3 (Excel tool) pulls Newtonsoft.Json and Microsoft.Extensions.* into the .NET 8/10 output. The installer ships only `JFTools.dll` to avoid clashing with Revit's own copies; the Excel tool has no ribbon button.
 
 There are no automated tests — the add-in must be tested inside Revit.
 
 ## Installation (manual)
 
-1. Copy `JFTools.dll` and `export_profiles.txt` to a folder (e.g., `C:\JFTools\`).
+1. Copy the `JFTools.dll` for your Revit range and `export_profiles.txt` to a folder (e.g., `C:\JFTools\`).
 2. Copy `JFTools.addin` to `%APPDATA%\Autodesk\Revit\Addins\<version>\`.
 3. Edit the `<Assembly>` path in the `.addin` file to point to the DLL.
 4. Restart Revit — the **JFTools** ribbon tab appears with the **Ferramentas** panel. No license or activation is required (the plugin is free and open source).
 
-**Testing after build:** The Inno Setup installer copies the DLL to `C:\ProgramData\JFTools\`. To test without reinstalling, overwrite `C:\ProgramData\JFTools\JFTools.dll` with the newly built DLL from `JFTools\bin\Debug\` and restart Revit.
+**Testing after build:** The installer puts each build in `C:\ProgramData\JFTools\R2022|R2025|R2027\`. To test without reinstalling, overwrite the DLL in the matching folder and restart Revit.
 
 ## Installer
 
-Installer files live in `Installer/`. The script is `Installer/JFTools-Setup.iss` and the compiled output goes to `Installer/Output/JFTools-Setup.exe`.
-
-Before compiling with Inno Setup 6, copy the following files into `Installer/`:
-- `JFTools.dll` — from `JFTools/bin/Release/`
-- `export_profiles.txt` — from `JFTools/export_profiles.txt`
-
-`icon.ico` is already in `Installer/`. The `.addin` file is generated dynamically by the installer script — no need to place one manually.
-
-The installer writes the `.addin` file only to the 2022, 2023 and 2024 Revit Addins folders (2025+ cannot load a .NET Framework 4.8 DLL).
-
+Script: `Installer/JFTools-Setup.iss` (Inno Setup 6), output `Installer/Output/JFTools-Setup.exe`. Run `build.ps1` first. Installs `R2022`, `R2025`, `R2027` subfolders (each with `JFTools.dll` + `export_profiles.txt`, because `NamingHelper` seeds profiles from the DLL's own folder) and writes a `.addin` into every existing `%APPDATA%\Autodesk\Revit\Addins\<year>` folder for 2022–2027, pointing at the matching build (2022–2024 → R2022, 2025–2026 → R2025, 2027 → R2027). Removes the root-level DLL left by v1.x.
 ## Architecture
 
 This is a **Revit external add-in** — a class library (DLL) loaded by Revit at startup. There are no standalone executables. The only NuGet package is EPPlus 4.5.3 (used by the Excel tool).

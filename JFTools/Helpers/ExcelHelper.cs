@@ -277,7 +277,7 @@ namespace JFTools.Helpers
 
         private static Parameter GetParam(Element elem, ScheduleField field)
         {
-            int pid = field.ParameterId.IntegerValue;
+            int pid = (int)field.ParameterId.IdValue();
             if (pid < 0) // BuiltInParameter
             {
                 var p = elem.get_Parameter((BuiltInParameter)pid);

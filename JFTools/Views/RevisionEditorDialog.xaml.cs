@@ -84,7 +84,7 @@ namespace JFTools.Views
 
                     foreach (var rev in revisions)
                     {
-                        string key = (d.PathName ?? d.Title ?? "") + "|" + rev.Id.IntegerValue;
+                        string key = (d.PathName ?? d.Title ?? "") + "|" + rev.Id.IdValue();
                         if (seenKeys.Contains(key)) continue;
                         seenKeys.Add(key);
 

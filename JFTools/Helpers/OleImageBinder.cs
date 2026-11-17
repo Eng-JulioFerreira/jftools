@@ -347,13 +347,14 @@ namespace JFTools.Helpers
             launched = false;
             try
             {
-                var obj = Marshal.GetActiveObject("AutoCAD.Application");
+                var obj = Compat.GetActiveComObject("AutoCAD.Application");
                 if (obj != null) return obj;
             }
             catch { }
 
             foreach (var progId in new[]
             {
+                "AutoCAD.Application.26",
                 "AutoCAD.Application.25",
                 "AutoCAD.Application.24",
                 "AutoCAD.Application.23",

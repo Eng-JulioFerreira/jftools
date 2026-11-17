@@ -1,105 +1,54 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
-          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Uma base de código, uma compilação por faixa de Revit:
+      dotnet build -c Release -p:RevitVersion=2022   → net48           (Revit 2022, 2023, 2024)
+      dotnet build -c Release -p:RevitVersion=2025   → net8.0-windows  (Revit 2025, 2026)
+      dotnet build -c Release -p:RevitVersion=2027   → net10.0-windows (Revit 2027)
+    A API do Revit vem dos pacotes de referência Nice3point.Revit.Api (não é preciso ter o Revit instalado).
+    Saída: bin\<Configuração>\R<RevitVersion>\JFTools.dll
+  -->
 
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B8F3A1C2-7D4E-4A9B-8C6D-1E2F3A4B5C6D}</ProjectGuid>
+    <RevitVersion Condition="'$(RevitVersion)' == ''">2025</RevitVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework Condition="$(RevitVersion) &lt; 2025">net48</TargetFramework>
+    <TargetFramework Condition="$(RevitVersion) &gt;= 2025 And $(RevitVersion) &lt; 2027">net8.0-windows</TargetFramework>
+    <TargetFramework Condition="$(RevitVersion) &gt;= 2027">net10.0-windows</TargetFramework>
+
     <OutputType>Library</OutputType>
     <RootNamespace>JFTools</RootNamespace>
     <AssemblyName>JFTools</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <Version>2.0.0</Version>
+    <Product>JF Tools</Product>
+    <Company>Eng. Júlio Ferreira</Company>
+    <Copyright>Júlio Ferreira — GPL-3.0</Copyright>
+
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
     <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
+    <Platforms>x64</Platforms>
 
-  <!-- ═══ AJUSTE AQUI: caminho do seu Revit ═══ -->
-  <PropertyGroup>
-    <RevitApiPath>D:\Autodesk\Programas\Revit 2023</RevitApiPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\$(Configuration)\R$(RevitVersion)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DefineConstants>$(DefineConstants);REVIT$(RevitVersion)</DefineConstants>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="$(RevitVersion).*" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="$(RevitVersion).*" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="EPPlus" Version="4.5.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="RevitAPI">
-      <HintPath>$(RevitApiPath)\RevitAPI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="RevitAPIUI">
-      <HintPath>$(RevitApiPath)\RevitAPIUI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="EPPlus">
-      <HintPath>..\packages\EPPlus.4.5.3\lib\net40\EPPlus.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="JFToolsApp.cs" />
-    <Compile Include="ExportSheetsCommand.cs" />
-    <Compile Include="Models\SheetItem.cs" />
-    <Compile Include="Helpers\L.cs" />
-    <Compile Include="Helpers\NamingHelper.cs" />
-    <Compile Include="Helpers\ExportHelper.cs" />
-    <Compile Include="Helpers\ExportSettingsHelper.cs" />
-    <Compile Include="Helpers\OleImageBinder.cs" />
-    <Compile Include="Views\MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\RevisionEditorDialog.xaml.cs">
-      <DependentUpon>RevisionEditorDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Commands\ExcelCommand.cs" />
-    <Compile Include="Helpers\ExcelHelper.cs" />
-    <Compile Include="Views\ExcelDialog.xaml.cs">
-      <DependentUpon>ExcelDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\NamingProfileEditorDialog.xaml.cs">
-      <DependentUpon>NamingProfileEditorDialog.xaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Include="Views\MainWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\RevisionEditorDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\ExcelDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\NamingProfileEditorDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
 
   <ItemGroup>
@@ -107,17 +56,12 @@
     <EmbeddedResource Include="Resources\icon32.png" />
     <EmbeddedResource Include="Resources\impressora.png" />
     <EmbeddedResource Include="Resources\folhas-do-google.png" />
+    <None Remove="Resources\*.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\JFTools.addin">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
-    <None Include="export_profiles.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="..\JFTools.addin" Link="JFTools.addin" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="export_profiles.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1054,7 +1054,7 @@ namespace JFTools.Helpers
 
                     string suffix = i == 0 ? "" : (i + 1).ToString();
                     linkOpts.AddOption("ExportLinkId" + suffix,
-                                       info.Instance.Id.IntegerValue.ToString());
+                                       info.Instance.Id.IdValue().ToString());
 
                     // Scale Origin to link document units; BasisX/Y/Z are pure direction vectors — not scaled
                     linkOpts.AddOption("ExportLinkInstanceTransform" + suffix,
@@ -1205,7 +1205,8 @@ namespace JFTools.Helpers
                 case "IFC2x3BFM":  return IFCVersion.IFC2x3BFM;
                 case "IFC2x2":     return IFCVersion.IFC2x2;
                 case "IFCBCA":     return IFCVersion.IFCBCA;
-                case "IFC4x3":     return IFCVersion.IFC4x3;
+                // IFC4x3 só existe a partir da API do Revit 2023; no 2022 cai para IFC4.
+                case "IFC4x3":     return Enum.TryParse("IFC4x3", out IFCVersion v43) ? v43 : IFCVersion.IFC4;
                 default:           return IFCVersion.IFC2x3CV2;
             }
         }

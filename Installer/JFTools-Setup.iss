@@ -1,15 +1,21 @@
 ; JF Tools (C# Addin)
 ; Inno Setup 6
 ;
-; Coloque na mesma pasta que este .iss:
-;   JFTools.dll          (compilado do Visual Studio - bin\Release\)
+; Antes de compilar, rode build.ps1 na raiz do repositório. Ele gera nesta pasta:
+;   R2022\JFTools.dll    (.NET Framework 4.8 → Revit 2022, 2023, 2024)
+;   R2025\JFTools.dll    (.NET 8             → Revit 2025, 2026)
+;   R2027\JFTools.dll    (.NET 10            → Revit 2027)
 ;   export_profiles.txt
-;   icon.ico
+; icon.ico já está nesta pasta.
+
+#define AppVersion "2.0.0"
 
 [Setup]
 AppName=JF Tools
-AppVersion=1.0
-AppPublisher=JF Tools
+AppVersion={#AppVersion}
+AppPublisher=Eng. Júlio Ferreira
+AppPublisherURL=https://eng-julioferreira.com.br
+AppSupportURL=https://github.com/Eng-JulioFerreira/jftools/issues
 AppId={{B8F3A1C2-7D4E-4A9B-8C6D-1E2F3A4B5C6D}
 DefaultDirName={commonappdata}\JFTools
 DefaultGroupName=JF Tools
@@ -20,11 +26,14 @@ OutputBaseFilename=JFTools-Setup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=admin
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 WizardStyle=modern
 SetupIconFile=icon.ico
 UninstallDisplayName=JF Tools
 UninstallDisplayIcon={app}\icon.ico
 CreateUninstallRegKey=yes
+LicenseFile=..\LICENSE
 
 [Languages]
 Name: "portuguese"; MessagesFile: "compiler:Languages\Portuguese.isl"
@@ -33,11 +42,21 @@ Name: "portuguese"; MessagesFile: "compiler:Languages\Portuguese.isl"
 WelcomeLabel1=Bem-vindo ao instalador do JF Tools
 FinishedLabel=Instalação concluída! Reinicie o Revit e procure a aba JFTools.
 
+[InstallDelete]
+; Versão 1.x instalava a DLL na raiz da pasta
+Type: files; Name: "{app}\JFTools.dll"
+Type: files; Name: "{app}\export_profiles.txt"
+
 [Files]
-; DLL do plugin e dependências (instaladas em C:\ProgramData\JFTools\)
-Source: "JFTools.dll";          DestDir: "{app}"; Flags: ignoreversion
-Source: "export_profiles.txt";  DestDir: "{app}"; Flags: ignoreversion
-Source: "icon.ico";             DestDir: "{app}"; Flags: ignoreversion
+; Uma DLL por faixa de Revit (instaladas em C:\ProgramData\JFTools\R20xx\)
+Source: "R2022\JFTools.dll";   DestDir: "{app}\R2022"; Flags: ignoreversion
+Source: "R2025\JFTools.dll";   DestDir: "{app}\R2025"; Flags: ignoreversion
+Source: "R2027\JFTools.dll";   DestDir: "{app}\R2027"; Flags: ignoreversion
+; O plugin copia os perfis iniciais da pasta da própria DLL
+Source: "export_profiles.txt"; DestDir: "{app}\R2022"; Flags: ignoreversion
+Source: "export_profiles.txt"; DestDir: "{app}\R2025"; Flags: ignoreversion
+Source: "export_profiles.txt"; DestDir: "{app}\R2027"; Flags: ignoreversion
+Source: "icon.ico";            DestDir: "{app}";       Flags: ignoreversion
 
 [UninstallDelete]
 ; Remover pasta do app
@@ -60,6 +79,23 @@ begin
     Result := ExpandConstant('{userappdata}');
 end;
 
+function AddinsBase(): string;
+begin
+  Result := GetUserAppData() + '\Autodesk\Revit\Addins';
+end;
+
+// Which build serves each Revit version ('' = not supported).
+function BuildFolderFor(Year: string): string;
+var
+  Y: Integer;
+begin
+  Result := '';
+  Y := StrToIntDef(Year, 0);
+  if (Y >= 2022) and (Y <= 2024) then Result := 'R2022'
+  else if (Y >= 2025) and (Y <= 2026) then Result := 'R2025'
+  else if Y = 2027 then Result := 'R2027';
+end;
+
 function BuildAddinContent(DllPath: string): string;
 begin
   Result :=
@@ -76,28 +112,24 @@ begin
     '</RevitAddIns>';
 end;
 
-// ── Find all installed Revit Addins folders ───────────────────────────────
+// ── Install / remove .addin files ─────────────────────────────────────────
 
-procedure GetRevitAddinsDirs(var Dirs: TStringList);
+procedure InstallAddinFiles();
 var
-  AddinsBase: string;
   FindRec: TFindRec;
-  SubDir: string;
+  Folder: string;
 begin
-  AddinsBase := GetUserAppData() + '\Autodesk\Revit\Addins';
-  if not DirExists(AddinsBase) then Exit;
-
-  if FindFirst(AddinsBase + '\*', FindRec) then
+  if not DirExists(AddinsBase()) then Exit;
+  if FindFirst(AddinsBase() + '\*', FindRec) then
   begin
     try
       repeat
-        // Só versões em .NET Framework 4.8 (2022–2024). O Revit 2025+ usa .NET 8
-        // e não carrega esta DLL; registrar nele causaria erro ao abrir o Revit.
-        if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
-           ((FindRec.Name = '2022') or (FindRec.Name = '2023') or (FindRec.Name = '2024')) then
+        if FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0 then
         begin
-          SubDir := AddinsBase + '\' + FindRec.Name;
-          Dirs.Add(SubDir);
+          Folder := BuildFolderFor(FindRec.Name);
+          if Folder <> '' then
+            SaveStringToFile(AddinsBase() + '\' + FindRec.Name + '\JFTools.addin',
+              BuildAddinContent(ExpandConstant('{app}') + '\' + Folder + '\JFTools.dll'), False);
         end;
       until not FindNext(FindRec);
     finally
@@ -106,42 +138,22 @@ begin
   end;
 end;
 
-// ── Install / remove .addin files ─────────────────────────────────────────
-
-procedure InstallAddinFiles();
-var
-  Dirs: TStringList;
-  DllPath, Content: string;
-  i: Integer;
-begin
-  DllPath := ExpandConstant('{app}') + '\JFTools.dll';
-  Content  := BuildAddinContent(DllPath);
-
-  Dirs := TStringList.Create();
-  try
-    GetRevitAddinsDirs(Dirs);
-    for i := 0 to Dirs.Count - 1 do
-    begin
-      if DirExists(Dirs[i]) then
-        SaveStringToFile(Dirs[i] + '\JFTools.addin', Content, False);
-    end;
-  finally
-    Dirs.Free();
-  end;
-end;
-
 procedure RemoveAddinFiles();
 var
-  Dirs: TStringList;
-  i: Integer;
+  FindRec: TFindRec;
 begin
-  Dirs := TStringList.Create();
-  try
-    GetRevitAddinsDirs(Dirs);
-    for i := 0 to Dirs.Count - 1 do
-      DeleteFile(Dirs[i] + '\JFTools.addin');
-  finally
-    Dirs.Free();
+  if not DirExists(AddinsBase()) then Exit;
+  if FindFirst(AddinsBase() + '\*', FindRec) then
+  begin
+    try
+      repeat
+        if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
+           (FindRec.Name <> '.') and (FindRec.Name <> '..') then
+          DeleteFile(AddinsBase() + '\' + FindRec.Name + '\JFTools.addin');
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
   end;
 end;
 

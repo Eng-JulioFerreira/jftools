@@ -10,14 +10,14 @@ O JF Tools começou como produto pago e agora é **gratuito e de código aberto*
 
 | Sistema | Arquivo | Revit |
 |---|---|---|
-| Windows 10/11 (64 bits) | [JFTools-Setup.exe](https://github.com/Eng-JulioFerreira/jftools/releases/latest) | 2022, 2023 e 2024 |
+| Windows 10/11 (64 bits) | [JFTools-Setup.exe](https://github.com/Eng-JulioFerreira/jftools/releases/latest) | 2022 a 2027 |
 
-> **Revit 2025 ou mais recente:** ainda não suportado. A partir do 2025 o Revit roda em .NET 8, e o plugin ainda é compilado para .NET Framework 4.8. A adaptação está planejada.
+O mesmo instalador serve todas as versões: ele coloca a compilação certa para cada uma (.NET Framework 4.8 no Revit 2022–2024, .NET 8 no 2025–2026 e .NET 10 no 2027).
 
 1. Baixe e execute o instalador (pede permissão de administrador).
 2. Abra o Revit e procure a aba **JFTools**.
 
-O instalador copia o plugin para `C:\ProgramData\JFTools\` e registra o `.addin` nas versões 2022, 2023 e 2024 do Revit encontradas no computador. Para desinstalar, use **Configurações → Aplicativos** do Windows.
+O instalador copia o plugin para `C:\ProgramData\JFTools\` e registra o `.addin` em cada versão do Revit (2022 a 2027) encontrada no computador. Se você instalar uma versão nova do Revit depois, abra-a uma vez e rode o instalador de novo. Para desinstalar, use **Configurações → Aplicativos** do Windows.
 
 > Já usava uma versão paga? Basta instalar esta versão por cima. A chave antiga não é mais necessária e seus perfis de nomenclatura e de exportação são mantidos.
 
@@ -66,20 +66,24 @@ Relatos e sugestões são bem-vindos nas [issues](https://github.com/Eng-JulioFe
 
 ### Compilar
 
-Pré-requisitos: Visual Studio 2022, .NET Framework 4.8 e o Revit instalado.
+Pré-requisito: [SDK do .NET 10](https://dotnet.microsoft.com/download). Não é preciso ter o Revit instalado: a API vem dos pacotes de referência [Nice3point.Revit.Api](https://github.com/Nice3point/RevitApi).
 
-1. Abra `JFTools/JFTools.csproj` no Visual Studio.
-2. Ajuste `<RevitApiPath>` no `.csproj` para a pasta do seu Revit (onde ficam `RevitAPI.dll` e `RevitAPIUI.dll`).
-3. Restaure os pacotes NuGet (EPPlus 4.5.3) e compile com **Ctrl+Shift+B**.
-4. A DLL é gerada em `JFTools/bin/Debug/` ou `JFTools/bin/Release/`.
+O projeto gera uma DLL por faixa de Revit, escolhida pela propriedade `RevitVersion`:
 
-Para testar sem reinstalar, sobrescreva `C:\ProgramData\JFTools\JFTools.dll` com a DLL compilada e reinicie o Revit.
+| Comando | Framework | Revit |
+|---|---|---|
+| `dotnet build JFTools -c Release -p:RevitVersion=2022` | .NET Framework 4.8 | 2022, 2023, 2024 |
+| `dotnet build JFTools -c Release -p:RevitVersion=2025` | .NET 8 | 2025, 2026 |
+| `dotnet build JFTools -c Release -p:RevitVersion=2027` | .NET 10 | 2027 |
+
+A DLL sai em `JFTools/bin/Release/R<versão>/`. Também dá para compilar contra a API de uma versão intermediária (por exemplo `-p:RevitVersion=2026`) só para conferir compatibilidade.
+
+Para testar sem reinstalar, sobrescreva `C:\ProgramData\JFTools\R<versão>\JFTools.dll` com a DLL compilada e reinicie o Revit.
 
 ### Gerar o instalador
 
-1. Compile em **Release**.
-2. Copie `JFTools.dll` (de `JFTools/bin/Release/`) e `JFTools/export_profiles.txt` para `Installer/`.
-3. Compile `Installer/JFTools-Setup.iss` com o [Inno Setup 6](https://jrsoftware.org/isinfo.php). O instalador sai em `Installer/Output/JFTools-Setup.exe`.
+1. Rode `.\build.ps1` na raiz do repositório. Ele compila as três versões e copia as DLLs para `Installer/R2022`, `Installer/R2025` e `Installer/R2027`.
+2. Se o [Inno Setup 6](https://jrsoftware.org/isinfo.php) estiver instalado, o script já gera `Installer/Output/JFTools-Setup.exe`. Senão, compile `Installer/JFTools-Setup.iss` manualmente.
 
 ### Estrutura
 
@@ -95,9 +99,11 @@ JFTools/
 │   ├── NamingHelper.cs           ← perfis de nomenclatura e tokens
 │   ├── OleImageBinder.cs         ← imagens → OLE via AutoCAD
 │   ├── ExcelHelper.cs            ← Excel ⇄ Revit (experimental)
+│   ├── Compat.cs                 ← diferenças entre .NET Framework 4.8 e .NET 8/10
 │   └── L.cs                      ← todos os textos da interface (PT/EN)
 └── Views/                        ← janelas WPF (principal, revisões, nomenclatura, Excel)
 Installer/JFTools-Setup.iss       ← script do instalador
+build.ps1                         ← compila as três versões e prepara o instalador
 revocation.txt                    ← mantido vazio: versões antigas (pagas) consultam este arquivo
 ```
 
