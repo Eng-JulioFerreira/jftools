@@ -12,7 +12,7 @@ msbuild JFTools/JFTools.csproj /p:Configuration=Release
 
 Output goes to `JFTools/bin/Debug/` or `JFTools/bin/Release/`.
 
-**Prerequisites:** .NET Framework 4.8, Visual Studio 2022, Revit 2022–2025 installed.
+**Prerequisites:** .NET Framework 4.8, Visual Studio 2022, Revit 2022–2024 installed. Revit 2025+ runs on .NET 8 and is NOT supported yet (needs a net8.0-windows build; also `ElementId.IntegerValue` was removed in the Revit 2026 API — used in ExcelHelper, RevisionEditorDialog and ExportHelper).
 
 **Revit API path:** Set in `.csproj` via `<RevitApiPath>` (currently set to `D:\Autodesk\Programas\Revit 2023`). Adjust if your Revit is in a different location. `RevitAPI.dll` and `RevitAPIUI.dll` are referenced from there with `<Private>false</Private>` (not copied to output).
 
@@ -37,7 +37,7 @@ Before compiling with Inno Setup 6, copy the following files into `Installer/`:
 
 `icon.ico` is already in `Installer/`. The `.addin` file is generated dynamically by the installer script — no need to place one manually.
 
-The installer targets Revit 2022–2025 and writes the `.addin` file to all detected Revit Addins folders on install/uninstall.
+The installer writes the `.addin` file only to the 2022, 2023 and 2024 Revit Addins folders (2025+ cannot load a .NET Framework 4.8 DLL).
 
 ## Architecture
 
