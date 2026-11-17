@@ -8,7 +8,9 @@
 ;   export_profiles.txt
 ; icon.ico já está nesta pasta.
 
-#define AppVersion "2.0.0"
+#ifndef AppVersion
+  #define AppVersion "2.0.0"
+#endif
 
 [Setup]
 AppName=JF Tools

@@ -10,7 +10,9 @@
 #>
 param(
     [string]$Dotnet = 'dotnet',
-    [string]$Configuration = 'Release'
+    [string]$Configuration = 'Release',
+    [string]$Version = '2.0.0',   # versão da DLL e do instalador (o GitHub Actions passa a da tag)
+    [string]$Iscc = ''            # caminho do ISCC.exe, se não estiver no local padrão
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,7 +29,7 @@ $builds = [ordered]@{
 
 foreach ($v in $builds.Keys) {
     Write-Host "==> R$v  $($builds[$v])" -ForegroundColor Cyan
-    & $Dotnet build $project -c $Configuration "-p:RevitVersion=$v" -v minimal -nologo
+    & $Dotnet build $project -c $Configuration "-p:RevitVersion=$v" "-p:Version=$Version" -v minimal -nologo
     if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar R$v" }
 
     $dest = Join-Path $installer "R$v"
@@ -37,14 +39,15 @@ foreach ($v in $builds.Keys) {
 Copy-Item (Join-Path $root 'JFTools\export_profiles.txt') $installer -Force
 
 $iscc = @(
+    $Iscc,
     "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
     "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
     "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
-) | Where-Object { Test-Path $_ } | Select-Object -First 1
+) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 
 if ($iscc) {
     Write-Host '==> Gerando instalador' -ForegroundColor Cyan
-    & $iscc (Join-Path $installer 'JFTools-Setup.iss')
+    & $iscc "/DAppVersion=$Version" (Join-Path $installer 'JFTools-Setup.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Falha ao gerar o instalador' }
     Write-Host "Pronto: $installer\Output\JFTools-Setup.exe" -ForegroundColor Green
 } else {

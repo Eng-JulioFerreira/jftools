@@ -1,0 +1,67 @@
+# Compila o JF Tools (Revit 2022–2027) e gera o instalador.
+#
+# - Ao enviar uma tag de versão (ex.: git tag v2.0.0 && git push origin v2.0.0):
+#   compila, gera JFTools-Setup.exe e publica o release com o instalador anexado,
+#   usando a seção correspondente do CHANGELOG.md como notas.
+# - Manualmente (aba Actions → "Build e release" → Run workflow): só compila e
+#   deixa o instalador como artefato para download, sem publicar release.
+
+name: Build e release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Instalar Inno Setup 6
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            Invoke-WebRequest 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_4/innosetup-6.7.4.exe' -OutFile is.exe
+            Start-Process .\is.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-' -Wait
+          }
+          if (-not (Test-Path $iscc)) { throw 'Inno Setup não foi instalado' }
+
+      - name: Definir versão
+        id: ver
+        shell: pwsh
+        run: |
+          $v = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME.TrimStart('v') } else { '0.0.0' }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Compilar e gerar instalador
+        shell: pwsh
+        run: ./build.ps1 -Version '${{ steps.ver.outputs.version }}'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JFTools-Setup
+          path: Installer/Output/JFTools-Setup.exe
+
+      - name: Publicar release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = '${{ steps.ver.outputs.version }}'
+          $log = Get-Content CHANGELOG.md -Raw
+          $m = [regex]::Match($log, "(?ms)^## $([regex]::Escape($v))[^\n]*\n(.*?)(?=^## |\z)")
+          $notes = if ($m.Success) { $m.Groups[1].Value.Trim() } else { "JF Tools $v" }
+          $notes += "`n`n**Compatível com Revit 2022 a 2027.** Baixe o ``JFTools-Setup.exe`` abaixo e execute."
+          Set-Content notes.md $notes -Encoding utf8
+          gh release create $env:GITHUB_REF_NAME Installer/Output/JFTools-Setup.exe --title "JF Tools $v" --notes-file notes.md
