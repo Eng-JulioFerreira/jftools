@@ -1,0 +1,4 @@
+# JFTools Revocation List
+# O JF Tools agora é gratuito: nenhuma chave está revogada.
+# NÃO apague este arquivo. Versões antigas (pagas) do plugin consultam esta URL e,
+# se ela deixar de existir, bloqueiam o uso após o período sem conexão.
