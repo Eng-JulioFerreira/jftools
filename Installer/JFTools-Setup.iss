@@ -91,8 +91,10 @@ begin
   begin
     try
       repeat
+        // Só versões em .NET Framework 4.8 (2022–2024). O Revit 2025+ usa .NET 8
+        // e não carrega esta DLL; registrar nele causaria erro ao abrir o Revit.
         if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0) and
-           (FindRec.Name <> '.') and (FindRec.Name <> '..') then
+           ((FindRec.Name = '2022') or (FindRec.Name = '2023') or (FindRec.Name = '2024')) then
         begin
           SubDir := AddinsBase + '\' + FindRec.Name;
           Dirs.Add(SubDir);

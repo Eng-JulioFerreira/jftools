@@ -10,12 +10,14 @@ O JF Tools começou como produto pago e agora é **gratuito e de código aberto*
 
 | Sistema | Arquivo | Revit |
 |---|---|---|
-| Windows 10/11 (64 bits) | [JFTools-Setup.exe](https://github.com/Eng-JulioFerreira/jftools/releases/latest) | 2022, 2023, 2024 e 2025 |
+| Windows 10/11 (64 bits) | [JFTools-Setup.exe](https://github.com/Eng-JulioFerreira/jftools/releases/latest) | 2022, 2023 e 2024 |
+
+> **Revit 2025 ou mais recente:** ainda não suportado. A partir do 2025 o Revit roda em .NET 8, e o plugin ainda é compilado para .NET Framework 4.8. A adaptação está planejada.
 
 1. Baixe e execute o instalador (pede permissão de administrador).
 2. Abra o Revit e procure a aba **JFTools**.
 
-O instalador copia o plugin para `C:\ProgramData\JFTools\` e registra o `.addin` em todas as versões do Revit encontradas no computador. Para desinstalar, use **Configurações → Aplicativos** do Windows.
+O instalador copia o plugin para `C:\ProgramData\JFTools\` e registra o `.addin` nas versões 2022, 2023 e 2024 do Revit encontradas no computador. Para desinstalar, use **Configurações → Aplicativos** do Windows.
 
 > Já usava uma versão paga? Basta instalar esta versão por cima. A chave antiga não é mais necessária e seus perfis de nomenclatura e de exportação são mantidos.
 
@@ -55,7 +57,7 @@ Os dois são criados automaticamente na primeira execução e editados pela pró
 ## Limitações conhecidas
 
 - **IFC**: algumas opções avançadas ainda não se comportam exatamente como no exportador nativo da Autodesk.
-- **NWC**: ainda não é possível configurar cores e algumas outras opções do exportador do Navisworks.
+- **NWC**: a API do Revit para exportação NWC não oferece opção de cores; as cores vêm dos materiais e da aparência do modelo. Algumas opções do exportador ainda não estão na interface. Exige o *Navisworks NWC Export Utility* instalado.
 - **Excel ⇄ Revit** (em desenvolvimento, desativado): a ideia é ler um intervalo nomeado de uma planilha e reproduzi-lo no Revit com a mesma aparência, e fazer o caminho inverso. O código está no repositório, mas o botão não aparece no ribbon até a ferramenta funcionar corretamente.
 
 Relatos e sugestões são bem-vindos nas [issues](https://github.com/Eng-JulioFerreira/jftools/issues).
